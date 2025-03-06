@@ -1,5 +1,5 @@
+import imageBase from '../../public/image-placeholder-base.webp';
 export default function ProductCard({ product }) {
-
 
   return (
     <div className="w-full max-w-80 h-96 m-4">
@@ -15,14 +15,14 @@ export default function ProductCard({ product }) {
             </div>
           )}
             <img
-              src={product.imageUrl}
+              src={product.imageUrl ? product.imageUrl : imageBase.src}
               alt={product.nombre}
               className="w-full h-48 object-cover rounded-t-lg"
             />
             <div className="p-4">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-semibold">{product.nombre}</h3>
-                <span className="text-lg font-bold">
+                <h3 className="text-lg font-semibold px-1">{product.nombre}</h3>
+                <span className="text-lg font-bold px-1">
                   ${product.precio.toFixed(2)} {product.currency}
                 </span>
               </div>
