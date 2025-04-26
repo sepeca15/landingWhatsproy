@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import ProductsSwiper from '../components/ProductsSwiper';
 import WhatsAppLink from '../components/WhatsAppLink';
+import Header from '../components/Header';
 
 interface EmpresaData {
   createdAt: string;
@@ -45,32 +46,15 @@ interface EmpresaResponse {
   products: Producto[];
 }
 
-function getSubdomain(): string | null {
-  if (typeof window === 'undefined') return null;
-  const hostname = window.location.hostname;
-  const parts = hostname.split('.');
-  if(parts.length > 2) {
-    return parts[0];
-  }
-  return null;
-}
-
 export default function Home() {
   const [empresaInfo, setEmpresaInfo] = useState<EmpresaResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const subdomain = getSubdomain();
-    if (!subdomain) {
-      setError('Subdominio no encontrado');
-      return;
-    }
-    
     setLoading(true);
-    const endpoint = `https://app.whatsproy.com/empresa/info/getInfoByDomain?domain=${subdomain}`;
     
-    fetch(endpoint)
+    fetch('/api/empresa')
       .then((res) => {
         if(!res.ok) {
           throw new Error('Error al obtener información');
@@ -100,27 +84,18 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="relative bg-gradient-to-r from-blue-500 to-teal-400 py-6">
-        <div className="container mx-auto text-center px-4">
-          <h1 className="text-4xl font-bold text-white">
-            {empresaInfo ? empresaInfo.data.nombre : 'Mi Empresa'}
-          </h1>
-          <p className="mt-4 text-xl text-white opacity-90">
-            Bienvenido a nuestro catálogo de productos
-          </p>
-        </div>
-      </header>
+      <Header empresaNombre={empresaInfo?.data.nombre} />
 
-      <main className="flex-grow container mx-auto px-4 py-4">
+      <div className="flex-grow container mx-auto px-4 py-4">
         {loading && <p>Cargando información de la empresa...</p>}
         {error && <p className="text-red-500">Error: {error}</p>}
         {!loading && !error && (
           <>
-            <ProductsSwiper products={products} />
+            <ProductsSwiper products={products as Producto[]} />
             <WhatsAppLink link="https://wa.me/123456789" />
           </>
         )}
-      </main>
+      </div>
 
       <footer className="bg-gray-200 py-4">
         <div className="container mx-auto text-center px-4">
