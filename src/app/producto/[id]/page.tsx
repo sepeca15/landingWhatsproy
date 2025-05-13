@@ -7,6 +7,8 @@ import { ArrowLeft } from "lucide-react"
 import imageBase from "../../../../public/image-placeholder-base.webp"
 import Image from "next/image";
 import Header from "../../../components/Header"
+import Cart from "../../../components/Cart"
+import { useCart } from "../../../context/CartContext"
 
 interface Producto {
     id: number;
@@ -17,7 +19,7 @@ interface Producto {
     descripcion: string;
     plazoDuracionEstimadoMinutos: number;
     disponible: boolean;
-  }
+}
 
 interface EmpresaData {
     id: number;
@@ -52,6 +54,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const [product, setProduct] = useState<null | Producto>(null)
     const [empresaInfo, setEmpresaInfo] = useState<EmpresaResponse | null>(null)
     const [loading, setLoading] = useState(true)
+    const [cantidad, setCantidad] = useState(1)
+    const { addToCart, items } = useCart()
 
     useEffect(() => {
         const fetchEmpresaInfo = async () => {
@@ -88,6 +92,29 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         }
     }, [id, router])
 
+    const handleAddToCart = () => {
+        if (!product) return;
+        addToCart(product, cantidad);
+        setCantidad(1);
+    };
+
+    const handleCheckout = () => {
+        if (!empresaInfo?.data.greenApiInstance || !empresaInfo?.data.greenApiInstanceToken) {
+            alert('No se puede procesar el pedido en este momento. Por favor, intente más tarde.');
+            return;
+        }
+
+        const message = items.map(item => 
+            `${item.nombre} x${item.cantidad} - $${item.precio * item.cantidad}`
+        ).join('\n');
+
+        const total = items.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+        const fullMessage = `¡Hola! Me gustaría hacer el siguiente pedido:\n\n${message}\n\nTotal: $${total}`;
+
+        const whatsappUrl = `https://wa.me/${empresaInfo.data.greenApiInstance}?text=${encodeURIComponent(fullMessage)}`;
+        window.open(whatsappUrl, '_blank');
+    };
+
     if (loading) {
         return (
             <div className="container mx-auto px-4 py-8 flex justify-center items-center min-h-[60vh]">
@@ -113,7 +140,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
     return (
         <div className="min-h-screen flex flex-col">
-            <Header empresaNombre={empresaInfo?.data.nombre} productoNombre={product?.nombre} />
+            <Header empresaNombre={empresaInfo?.data.nombre} productoNombre={product?.nombre} logo={empresaInfo?.data.logo} abierto={empresaInfo?.data.abierto}/>
             
             <div className="container mx-auto px-4 py-8">
                 <Link
@@ -132,7 +159,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                             objectFit="cover"
                             width={300}
                             height={300}
-                            className="w-full  object-cover rounded-md"
+                            className="w-full object-cover rounded-md"
                         />
                     </div>
 
@@ -154,32 +181,39 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                             <p className="text-gray-700 mb-4">{product.descripcion}</p>
                         </div>
 
-                        {/* {product.detalles && product.detalles.length > 0 && (
-                            <div className="border-t border-gray-200 pt-4">
-                                <h2 className="text-xl font-semibold mb-2">Características</h2>
-                                <ul className="list-disc pl-5 space-y-1">
-                                    {product.detalles.map((detalle, index) => (
-                                        <li key={index} className="text-gray-700">
-                                            {detalle}
-                                        </li>
-                                    ))}
-                                </ul>
+                        {product.disponible && (
+                            <div className="mt-8 space-y-4">
+                                <div className="flex items-center gap-4">
+                                    <span className="text-gray-700">Cantidad:</span>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => setCantidad(prev => Math.max(1, prev - 1))}
+                                            className="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200"
+                                        >
+                                            -
+                                        </button>
+                                        <span className="w-8 text-center">{cantidad}</span>
+                                        <button
+                                            onClick={() => setCantidad(prev => prev + 1)}
+                                            className="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={handleAddToCart}
+                                    className="w-full py-3 px-4 rounded-lg text-white font-medium bg-blue-600 hover:bg-blue-700 transition-colors"
+                                >
+                                    Agregar al carrito
+                                </button>
                             </div>
-                        )} */}
-
-                        <div className="mt-8">
-                            <button
-                                className={`w-full py-3 px-4 rounded-lg text-white font-medium ${
-                                    product.disponible ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"
-                                } transition-colors`}
-                                disabled={!product.disponible}
-                            >
-                                {product.disponible ? "Añadir al carrito" : "No disponible"}
-                            </button>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>
+
+            <Cart onCheckout={handleCheckout} />
         </div>
     )
 }

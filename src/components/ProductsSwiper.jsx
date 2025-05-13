@@ -4,7 +4,8 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
 import ProductCard from './ProductCard';
-export default function ProductsSwiper({ products }) {
+
+export default function ProductsSwiper({ products, onAddToCart }) {
   return (
     <Swiper
       navigation
@@ -19,7 +20,7 @@ export default function ProductsSwiper({ products }) {
     >
       {products.map((product, index) => (
         <SwiperSlide key={index}>
-          <ProductCard product={product} />
+          <ProductCard product={product} onAddToCart={onAddToCart} />
         </SwiperSlide>
       ))}
     </Swiper>

@@ -5,12 +5,18 @@ import imageBase from "../../public/image-placeholder-base.webp"
 import Image from "next/image";
 import { useRouter } from "next/navigation"
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, onAddToCart }) {
   const router = useRouter()
   const [isHovered, setIsHovered] = useState(false)
+
   const handleProductClick = (product) => {
     localStorage.setItem("selectedProduct", JSON.stringify(product))
     router.push(`/producto/${product.id}`)
+  }
+
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    onAddToCart(product);
   }
 
   return (
@@ -43,10 +49,20 @@ export default function ProductCard({ product }) {
             <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2 min-h-[3.5rem]">{product.nombre}</h3>
             <p className="text-gray-600 text-sm line-clamp-3 mb-4 min-h-[4.5rem]">{product.descripcion}</p>
             <div className="mt-auto pt-2 border-t border-gray-100">
-              <span className="block text-xl font-bold text-gray-800">
-                ${product.precio}
-                <span className="text-sm font-medium text-gray-500 ml-1">{product.currency}</span>
-              </span>
+              <div className="flex justify-between items-center">
+                <span className="block text-xl font-bold text-gray-800">
+                  ${product.precio}
+                  <span className="text-sm font-medium text-gray-500 ml-1">{product.currency}</span>
+                </span>
+                {product.disponible && (
+                  <button
+                    onClick={handleAddToCart}
+                    className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                  >
+                    Agregar
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

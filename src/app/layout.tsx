@@ -1,4 +1,5 @@
 import './globals.css';
+import { CartProvider } from '../context/CartContext';
 
 export const metadata = {
   title: 'Mi Landing Empresarial',
@@ -9,7 +10,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <body className="min-h-screen bg-gray-50 text-gray-800">
-        {children}
+        <CartProvider>
+          {children}
+        </CartProvider>
       </body>
     </html>
   );
