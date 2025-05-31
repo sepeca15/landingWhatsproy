@@ -1,5 +1,10 @@
 import './globals.css';
 import { CartProvider } from '../context/CartContext';
+import { Funnel_Sans
+
+} from 'next/font/google';
+
+const griffy = Funnel_Sans({ subsets: ['latin'], weight: ['400', '400'] });
 
 export const metadata = {
   title: 'Mi Landing Empresarial',
@@ -9,11 +14,14 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body className="min-h-screen bg-gray-50 text-gray-800">
-        <CartProvider>
-          {children}
-        </CartProvider>
+      <body className={griffy.className + " min-h-screen text-gray-800"}>
+        <div className=''>
+          <CartProvider>
+            {children}
+          </CartProvider>
+        </div>
       </body>
     </html>
   );
+  
 }

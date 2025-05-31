@@ -1,28 +1,38 @@
 "use client";
-import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
-import { Navigation } from 'swiper/modules';
-import ProductCard from './ProductCard';
+import CategoryCard from './CategoryCard';
+import BorderMenu from '../../public/BorderMenu'
+import MenuTitle from '../../public/MenuTitle'
 
-export default function ProductsSwiper({ products, onAddToCart }) {
+export default function ProductsSwiper({ categorys, onAddToCart }) {
   return (
-    <Swiper
-      navigation
-      modules={[Navigation]}
-      spaceBetween={16}
-      slidesPerView={1}
-      breakpoints={{
-        540: { slidesPerView: 2 },
-        768: { slidesPerView: 3 },
-        1024: { slidesPerView: 4 },
-      }}
-    >
-      {products.map((product, index) => (
-        <SwiperSlide key={index}>
-          <ProductCard product={product} onAddToCart={onAddToCart} />
-        </SwiperSlide>
+    <div className='relative mt-[125px] md:w-auto w-full md:gap-x-[125px] grid md:grid-cols-2 grid-cols-1 md:px-[150px] py-[50px]  place-items-center'>
+      <div className="absolute top-[-400px] left-1/2 transform -translate-x-1/2">
+        <MenuTitle />
+      </div>
+
+      <div className='absolute top-0 left-0'>
+        <BorderMenu />
+      </div>
+      <div className='absolute top-0 right-0 scale-x-[-1]'>
+        <BorderMenu />
+      </div>
+      <div className='absolute bottom-0 right-0 rotate-180'>
+        <BorderMenu />
+      </div>
+      <div className='absolute bottom-0 right-0 rotate-180'>
+        <BorderMenu />
+      </div>
+      <div className='absolute bottom-0 left-0 rotate-180 scale-x-[-1]'>
+        <BorderMenu />
+      </div>
+      {categorys.map((category, index) => (
+        <div key={index} className={index % 2 !== 0 ? 'mt-[80px]' : 'mt-0'}>
+          <CategoryCard category={category} onAddToCart={onAddToCart} />
+        </div>
       ))}
-    </Swiper>
-  );
+    </div>
+  )
+
 }

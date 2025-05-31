@@ -23,7 +23,7 @@ export default function Cart({ onCheckout }: CartProps) {
         <p className="text-center text-gray-500 mb-4">¡Haz tu pedido acá!</p>
         <button
           onClick={onCheckout}
-          className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600 transition-colors"
+          className="w-full bg-yellow-500 text-white py-2 rounded hover:bg-yellow-600 transition-colors"
         >
           Contactar
         </button>
@@ -33,15 +33,14 @@ export default function Cart({ onCheckout }: CartProps) {
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      <div 
-        className={`bg-white rounded-lg shadow-lg transition-all duration-300 ${
-          isExpanded ? 'w-80' : 'w-16 h-16'
-        }`}
+      <div
+        className={`bg-white rounded-lg shadow-lg transition-all duration-300 ${isExpanded ? 'w-80' : 'w-16 h-16'
+          }`}
       >
         {!isExpanded ? (
           <button
             onClick={() => setIsExpanded(true)}
-            className="w-full h-full flex items-center justify-center bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+            className="w-full h-full flex items-center justify-center bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
           >
             <div className="relative">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -66,7 +65,7 @@ export default function Cart({ onCheckout }: CartProps) {
             <div className="max-h-96 overflow-y-auto">
               {items.map((item) => (
                 <div key={item.id} className="flex items-center gap-2 mb-4 pb-4 border-b">
-                  <div className="relative w-16 h-16">
+                  <div className="relative w-16 h-16 shadow-xl">
                     <Image
                       src={item.imagen || imageBase.src}
                       alt={item.nombre}
@@ -109,7 +108,7 @@ export default function Cart({ onCheckout }: CartProps) {
               </div>
               <button
                 onClick={onCheckout}
-                className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600 transition-colors"
+                className="w-full bg-yellow-500 text-white py-2 rounded hover:bg-yellow-600 transition-colors"
               >
                 Contactar
               </button>

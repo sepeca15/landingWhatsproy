@@ -1,53 +1,25 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import ProductsSwiper from '../components/ProductsSwiper';
-import Header from '../components/Header';
-import Cart from '../components/Cart';
-import Testimonios from '../components/Testimonios';
-import { useCart } from '../context/CartContext';
 import { EmpresaResponse, Producto, Reseña } from '../types';
-
+import DeliveryPage from '@/components/RenderDeloveryPage';
+import ReservaPage from '@/components/RenderReservaPage';
+import Header from '@/components/Header';
+import { FaLocationDot } from 'react-icons/fa6';
+import { IoIosPhonePortrait } from 'react-icons/io';
+import { MdSchedule } from 'react-icons/md';
+import { SiGmail } from 'react-icons/si';
+import { useCart } from '@/context/CartContext';
 export default function Home() {
-  const [empresaInfo, setEmpresaInfo] = useState<EmpresaResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const { addToCart, items } = useCart();
-
-  // Datos de ejemplo para testimonios
-  const testimoniosEjemplo: Reseña[] = [
-    {
-      id: 1,
-      nombre: "María González",
-      comentario: "¡Excelente servicio! Los productos son de primera calidad y la atención es increíble.",
-      calificacion: 5,
-      fecha: "2024-03-15",
-      imagen: "https://i.pravatar.cc/150?img=1"
-    },
-    {
-      id: 2,
-      nombre: "Juan Pérez",
-      comentario: "Muy satisfecho con la calidad y el tiempo de entrega. Definitivamente volveré a comprar.",
-      calificacion: 4,
-      fecha: "2024-03-10",
-      imagen: "https://i.pravatar.cc/150?img=2"
-    },
-    {
-      id: 3,
-      nombre: "Ana Martínez",
-      comentario: "La mejor experiencia de compra que he tenido. Todo llegó perfecto y a tiempo.",
-      calificacion: 5,
-      fecha: "2024-03-05",
-      imagen: "https://i.pravatar.cc/150?img=3"
-    }
-  ];
+  const [empresaInfo, setEmpresaInfo] = useState<EmpresaResponse | undefined>(undefined);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     setLoading(true);
-    
+
     fetch('/api/empresa')
       .then((res) => {
-        if(!res.ok) {
+        if (!res.ok) {
           throw new Error('Error al obtener información');
         }
         return res.json();
@@ -57,76 +29,80 @@ export default function Home() {
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message || 'Error desconocido');
         setLoading(false);
       });
   }, []);
 
-  const handleAddToCart = (product: Producto) => {
-    addToCart(product, 1);
-  };
-
-  const handleCheckout = () => {
-    if (!empresaInfo?.data.greenApiInstance || !empresaInfo?.data.greenApiInstanceToken) {
-      alert('No se puede procesar el pedido en este momento. Por favor, intente más tarde.');
-      return;
-    }
-
-    let fullMessage;
-    if (items.length === 0) {
-      fullMessage = `¡Hola! Me gustaría hacer un pedido. ¿Podrías ayudarme con el menú?`;
-    } else {
-      const message = items.map(item => 
-        `${item.nombre} x${item.cantidad} - $${item.precio * item.cantidad}`
-      ).join('\n');
-      const total = items.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
-      fullMessage = `¡Hola! Me gustaría hacer el siguiente pedido:\n\n${message}\n\nTotal: $${total}`;
-    }
-
-    const whatsappUrl = `https://wa.me/${empresaInfo.data.greenApiInstance}?text=${encodeURIComponent(fullMessage)}`;
-    window.open(whatsappUrl, '_blank');
-  };
-  
-  const productoEjemplo = {
-    id: 0,
-    nombre: "Producto Ejemplo",
-    precio: 150,
-    imagen: "https://via.placeholder.com/600x400",
-    empresa_id: 0,
-    descripcion: "Esta es una breve descripción del producto. Se muestra en tres líneas y se recorta si es muy larga.",
-    plazoDuracionEstimadoMinutos: 30,
-    disponible: true 
-  };
-
-  const products = empresaInfo ? empresaInfo.products : Array(6).fill(productoEjemplo);
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header 
-        empresaNombre={empresaInfo?.data.nombre} 
-        logo={empresaInfo?.data.logo}
-        abierto={empresaInfo?.data.abierto}
-      />
-
-      <div className="flex-grow container mx-auto px-4 py-4">
-        {loading && <p>Cargando información de la empresa...</p>}
-        {error && <p className="text-red-500">Error: {error}</p>}
-        {!loading && !error && (
-          <>
-            <ProductsSwiper products={products} onAddToCart={handleAddToCart} />
-            <Testimonios reseñas={testimoniosEjemplo} />
-            <Cart onCheckout={handleCheckout} />
-          </>
-        )}
+    loading ?
+      <div className='flex-1 w-full h-screen flex flex-row items-center'>
+        <p className='text-center m-auto text-white animate-pulse'>CARGANDO INFORMACIÓN DE LA EMPRESA</p>
       </div>
+      :
+      empresaInfo?.data ?
+        <div className='flex-1 h-screen bg-[#030508] flex flex-col'>
+          <Header
+            empresaNombre={empresaInfo?.data.nombre}
+            logo={empresaInfo?.data.logo}
+            abierto={empresaInfo?.data.abierto}
+          />
+          {
+            empresaInfo?.data.tipoServicioId === 1 ?
+              <DeliveryPage empresaInfo={empresaInfo} />
+              :
+              <ReservaPage empresaInfo={empresaInfo} />
+          }
 
-      <footer className="bg-gray-200 py-4">
-        <div className="container mx-auto text-center px-4">
-          <p className="text-sm text-gray-700">
-            © {new Date().getFullYear()} {empresaInfo ? empresaInfo.data.nombre : 'Measy'}. Todos los derechos reservados.
-          </p>
+          <footer className="bg-black py-4 text-gray-200">
+            <div className='w-full my-[100px] bg-black'>
+              <div className='w-[60%] m-auto flex md:flex-row flex-col md:justify-between justify-center md:gap-0 gap-[40px]'>
+                <div className='flex flex-col md:items-start items-center gap-4'>
+                  <p className='font-bold'>
+                    SOBRE NOSOTROS
+                  </p>
+                  <div className='flex flex-row items-center gap-2'>
+                    <FaLocationDot size={20} color='white' />
+                    <p>{empresaInfo?.data.direccion ?? "No hay direccion"}</p>
+                  </div>
+                  <div className='flex flex-row items-center gap-2'>
+                    <IoIosPhonePortrait size={20} color='white' />
+                    <p>59891664536</p>
+                  </div>
+                </div>
+                <div className='flex flex-col md:items-start items-center gap-4'>
+                  <p className='font-bold'>
+                    HORARIOS
+                  </p>
+                  <div className='flex flex-row items-center gap-2'>
+                    <MdSchedule size={20} color='white' />
+                    <p>{empresaInfo?.data.hora_apertura}</p>
+                  </div>
+                  <div className='flex flex-row items-center gap-2'>
+                    <MdSchedule size={20} color='white' />
+                    <p>{empresaInfo?.data.hora_cierre}</p>
+                  </div>
+
+                </div>
+                <div className='flex flex-col md:items-start items-center gap-4'>
+                  <p>
+                    CONTACTANOS
+                  </p>
+                  <div className='flex flex-row items-center gap-2'>
+                    <SiGmail size={20} color='white' />
+                    <p>{empresaInfo?.data.userContact}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="container mx-auto text-center px-4">
+              <p className="text-sm ">
+                © {new Date().getFullYear()} {empresaInfo ? empresaInfo.data.nombre : 'Measy'}. Todos los derechos reservados.
+              </p>
+            </div>
+          </footer>
+
         </div>
-      </footer>
-    </div>
+        :
+        <div className='w-full h-screen bg-transparent text-white flex justify-center items-center'>No data</div>
   );
 }

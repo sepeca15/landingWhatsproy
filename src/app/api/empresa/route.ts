@@ -50,7 +50,13 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    console.log('jejejeje');
+    
+    console.log(subdomain);
+    
     const response = await fetch(`https://app.whatsproy.com/empresa/info/getInfoByDomain?domain=${subdomain}`);
+    
+    console.log('respondio');
     
     if (!response.ok) {
       throw new Error('Error al obtener información');
