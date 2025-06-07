@@ -1,10 +1,15 @@
 import './globals.css';
 import { CartProvider } from '../context/CartContext';
-import { Funnel_Sans
+import {
+  Funnel_Sans
 
 } from 'next/font/google';
+import { Bebas_Neue, Inter } from 'next/font/google';
 
-const griffy = Funnel_Sans({ subsets: ['latin'], weight: ['400', '400'] });
+// Título en mayúsculas
+const bebas = Bebas_Neue({ subsets: ['latin'], weight: '400' });
+// Texto general
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
   title: 'Mi Landing Empresarial',
@@ -14,8 +19,8 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body className={griffy.className + " min-h-screen text-gray-800"}>
-        <div className=''>
+      <body className={`${inter.className} min-h-screen text-gray-800`}>
+      <div className=''>
           <CartProvider>
             {children}
           </CartProvider>
@@ -23,5 +28,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </body>
     </html>
   );
-  
+
 }

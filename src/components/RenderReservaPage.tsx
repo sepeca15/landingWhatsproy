@@ -17,10 +17,16 @@ const ReservaPage = ({ empresaInfo }: IReservaPage) => {
     const [form, setForm] = React.useState<any>({
         infoLinesJson: {}
     })
+    const [loading, setLoading] = React.useState(false);
+
     const [hour, setHour] = React.useState<string>("")
     const [hoursAvaiable, sethoursAvaiable] = React.useState<any[]>([])
-    const [dateSelected, setdateSelected] = React.useState<string>(moment.tz(empresaInfo?.data.timeZone ?? "America/montevideo").format("YYYY MM DD").toString())
-    const [error, setError] = React.useState<string>("")
+    const [dateSelected, setdateSelected] = React.useState<string>(
+        moment.tz(empresaInfo?.data.timeZone ?? "America/Montevideo").format("YYYY-MM-DD")
+    ); const [error, setError] = React.useState<string>("")
+    const [diasDisponibles, setDiasDisponibles] = React.useState<string[]>([]);
+    const [trabajadores, settrabajadores] = React.useState<any[]>([]);
+    const [workerSelected, setWorkerSelected] = React.useState<any>(null);
 
     const handleChangeForm = (key: string, value: any) => {
         setForm((prev: any) => ({
@@ -29,6 +35,19 @@ const ReservaPage = ({ empresaInfo }: IReservaPage) => {
         }))
         if (error) {
             setError('')
+        }
+    }
+
+    const getWorkers = async () => {
+        const response = await fetch('https://app.whatsproy.com/usuario/workers/' + empresaInfo?.data.id, {
+            method: "GET"
+        })
+        const respJson = await response.json()
+        if (respJson) {
+            settrabajadores(respJson.data)
+            if (respJson.data.length === 1) {
+                setWorkerSelected(respJson.data[0])
+            }
         }
     }
 
@@ -51,28 +70,21 @@ const ReservaPage = ({ empresaInfo }: IReservaPage) => {
 
     const getHoursAvaiablePerDay = async () => {
         try {
-            const response = await fetch(empresaInfo?.data.apiUrl + `/pedido/calendar/dates-avaiable?fecha=${dateSelected}&withPast=true`, {
+            const response = await fetch(empresaInfo?.data.apiUrl + `/pedido/calendar/dates-avaiable?fecha=${dateSelected}&withPast=false?userId=${workerSelected.id}`, {
                 method: "GET"
             })
             const respJson = await response.json()
             if (respJson.length > 0) {
+
                 const formatedData = respJson.map((element: string) => {
-                    return moment.tz(element, timeZone).format("HH:MM")
+                    return moment.tz(element, timeZone).format("HH:mm")
                 })
                 sethoursAvaiable(formatedData)
             }
-            console.log(respJson);
         } catch (error: any) {
             console.log("hubo un error", error.response.data.message);
         }
     }
-
-    useEffect(() => {
-        if (dateSelected) {
-            setHour('')
-            getHoursAvaiablePerDay()
-        }
-    }, [dateSelected])
 
     const makeReservation = () => {
         if (makeValidation() === false) {
@@ -96,13 +108,14 @@ const ReservaPage = ({ empresaInfo }: IReservaPage) => {
                     `🔹 ${key}: ${form.infoLinesJson[key]}`
                 ).join('\n');
 
-                fullMessage = `¡Hola! 😊 Me gustaría realizar la siguiente reserva: \n${message}\n📄 *Datos para realizar la reserva:*\n${infoLinesFormated}\n\n¡Muchas gracias! 🙏 Quedo atento/a a su confirmación.`;
+                fullMessage = `¡Hola! 😊 Me gustaría realizar la siguiente reserva: \n${message}\n📄 con ${workerSelected.nombre + workerSelected.apellido} *Datos para realizar la reserva:*\n${infoLinesFormated}\n\n¡Muchas gracias! 🙏 Quedo atento/a a su confirmación.`;
             }
 
             const whatsappUrl = `https://wa.me/${empresaInfo.data.numero}?text=${encodeURIComponent(fullMessage)}`;
             window.open(whatsappUrl, '_blank');
             setForm({})
-            console.log(form);
+            setWorkerSelected(null)
+            setHour('')
 
         } catch (error) {
             console.log(error);
@@ -129,6 +142,11 @@ const ReservaPage = ({ empresaInfo }: IReservaPage) => {
             }
         });
 
+        if (trabajadores.length > 1 && !workerSelected) {
+            setError(`Por favor ingrese un trabajador valido`)
+            isValid = false;
+        }
+
         if (!isValid) {
             console.log("Por favor complete todos los campos requeridos.");
         }
@@ -148,31 +166,119 @@ const ReservaPage = ({ empresaInfo }: IReservaPage) => {
             }))
         }
     }
-    return (
-        <div className="flex-1 w-full">
 
-            <div className="typewriter-wrapper overflow-y-auto flex justify-center  mt-10 flex-wrap">
-                <h1 className="text-2xl md:text-4xl font-bold text-white typewriter-text">
-                    ¡Planificá tu visita con nosotros!
-                </h1>
-            </div>
-            <div className="flex md:flex-row flex-col md:items-start items-center  text-white justify-center py-[50px] gap-[50px]">
-                <div className="flex flex-row items-center shadow-2xl shadow-blue-500/30">
-                    <Calendar
-                        className="night-blue"
-                        minDate={new Date()}
-                        onChange={(date) => {
-                            const selectedDate = Array.isArray(date) ? date[0] : date;
-                            if (selectedDate) {
-                                const formattedDate = moment(selectedDate)
-                                    .tz(timeZone)
-                                    .format("YYYY-MM-DD");
-                                setdateSelected(formattedDate);
-                                updateFechaYHoraInfoLine(formattedDate, hour)
-                            }
-                        }}
-                        value={dateSelected ? dateSelected : undefined}
+    const onChangeMonth = async (month: any, year: any) => {
+        try {
+            setLoading(true)
+            const response = await fetch(empresaInfo?.data.apiUrl + `/pedido/calendar/dates-avaiable-by-month?mes=${month}&anio=${year}?userId=${workerSelected.id}`, {
+                method: "GET"
+            });
+
+            const respJson = await response.json();
+
+            if (respJson) {
+                const fechasValidas = respJson
+                    .filter((dia: any) => dia.cuposDisponibles > 0)
+                    .map((dia: any) => dia.fecha); // formato: "2025-10-01"
+
+                setDiasDisponibles(fechasValidas);
+            }
+
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setLoading(false)
+        }
+    };
+
+
+    const disableDate = ({ date }: { date: Date }) => {
+        const dateStr = moment(date).format("YYYY-MM-DD");
+        return (
+            moment(dateStr).isBefore(moment().format("YYYY-MM-DD")) ||
+            !diasDisponibles.includes(dateStr)
+        );
+    };
+
+    useEffect(() => {
+        if (dateSelected && workerSelected) {
+            setHour('')
+            getHoursAvaiablePerDay()
+
+            const month = parseInt(moment.tz(dateSelected, timeZone).format("MM"));
+            const year = parseInt(moment.tz(dateSelected, timeZone).format("YYYY"));
+
+            onChangeMonth(month, year);
+        }
+    }, [dateSelected, workerSelected?.id])
+
+    useEffect(() => {
+        getWorkers()
+    }, [])
+
+    return (
+        <div className="flex-1 w-full mt-[50px]">
+            <div className="md:w-3/4 w-full m-auto flex flex-col-reverse md:flex-row justify-between md:items-start items-center gap-10 mt-16 px-6 md:px-16">
+                <div className="flex-1 mt-8 text-center md:text-left">
+                    <h1 className="uppercase-title text-[70px] font-extrabold text-blue-600 mb-4 animate-fade-in">
+                        Reservá tu lugar
+                    </h1>
+                    <h2 className="uppercase-title text-lg md:text-xl text-blue-300 max-w-md mx-auto md:mx-0">
+                        Elegí el día y la hora que más te convenga. Confirmación instantánea y sin complicaciones.
+                    </h2>
+
+                    <a href="#reservaFormulario">
+                        <button className="border-blue-400 text-blue-400 border-[1px] mt-4 shadow-lg shadow-blue-600/50 hover:scale-110 rounded-full px-4 py-2">
+                            Reservar
+                        </button>
+                    </a>
+                </div>
+
+                <div className="flex-1 md:max-w-[700px] max-w-[400px]">
+                    <img
+                        src="/fondoReserva.png"
+                        alt="Imagen de reserva"
+                        className="w-full object-contain opacity-90 drop-shadow-lg rounded-xl"
                     />
+                </div>
+            </div>
+
+            <div id="reservaFormulario" className="flex md:flex-row flex-col md:items-start items-center  text-white justify-center py-[50px] gap-[50px]">
+                <div className="flex flex-row items-center shadow-2xl shadow-blue-500/30">
+                    <div className="relative">
+                        {(loading || !workerSelected) && (
+                            <div className="absolute inset-0 z-10 bg-black/50 flex items-center justify-center rounded-md">
+                                <div className="loader" />
+                                {
+                                    !workerSelected &&
+                                    <p>Por favor selecciona un trabajador</p>
+                                }
+                            </div>
+                        )}
+                        <Calendar
+                            className="night-blue"
+                            minDate={new Date()}
+                            onChange={(date) => {
+                                const selectedDate = Array.isArray(date) ? date[0] : date;
+                                if (selectedDate) {
+                                    const formattedDate = moment(selectedDate)
+                                        .tz(timeZone)
+                                        .format("YYYY-MM-DD");
+                                    setdateSelected(formattedDate);
+                                    updateFechaYHoraInfoLine(formattedDate, hour)
+                                }
+                            }}
+                            value={dateSelected ? new Date(dateSelected + "T00:00:00") : new Date()}
+                            onActiveStartDateChange={(active: any) => {
+                                const month = active.activeStartDate.getMonth() + 1;
+                                const year = active.activeStartDate.getFullYear();
+                                onChangeMonth(month, year)
+
+                            }}
+                            tileDisabled={disableDate}
+                        />
+                    </div>
+
                 </div>
                 <div className="w-[350px] shadow-blue-500/30 bg-[#1e293b] rounded-xl shadow-2xl px-[24px] py-[24px] flex flex-col justify-between">
                     <h1 className="text-center font-semibold text-2xl mb-4">Completa tu reserva</h1>
@@ -181,6 +287,23 @@ const ReservaPage = ({ empresaInfo }: IReservaPage) => {
                         <p className="text-red-400 mb-4">{error}</p>
                     }
                     <div className="flex-1">
+                        {
+                            trabajadores.length > 1 &&
+                            <div className="flex-1" style={{ marginBottom: '1rem' }}>
+                                <CustomDropDown
+                                    label="Seleccionar Trabajador"
+                                    options={trabajadores}
+                                    selected={workerSelected?.id || ""}
+                                    onChange={(worker) => {
+                                        console.log('Trabajador seleccionado:', worker);
+                                        setWorkerSelected(worker);
+                                    }}
+                                    optionLabelKey="nombre"
+                                    optionValueKey="id"
+                                />
+                            </div>
+                        }
+
                         <div className="flex-1" style={{ marginBottom: '1rem' }}>
                             <CustomDropDown label="Seleccionar servicio" options={empresaInfo?.products.map((prod) => prod.name) ?? []} selected={form?.producto} onChange={(value) => handleChangeForm('producto', value)} />
                         </div>
@@ -214,6 +337,7 @@ const ReservaPage = ({ empresaInfo }: IReservaPage) => {
                                 <FaWandMagicSparkles size={12} />
                             </button>
                         </div>
+
                     </div>
 
                     <button

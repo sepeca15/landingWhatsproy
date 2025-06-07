@@ -17,7 +17,7 @@ export default function Header({
   abierto,
 }: HeaderProps) {
   return (
-    <header className="relative bg-gradient-to-r py-6">
+    <header className="fixed bg-gradient-to-r py-6 flex-1 w-full z-[1000] ">
       <div className="container mx-auto px-4">
         <div className="flex items-center gap-[20px] md:flex-row flex-col justify-between">
           <div className="flex items-center space-x-4">

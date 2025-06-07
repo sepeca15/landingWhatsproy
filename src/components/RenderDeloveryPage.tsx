@@ -11,7 +11,7 @@ interface IDeliveryPage {
 }
 
 const DeliveryPage = ({ empresaInfo }: IDeliveryPage) => {
-    const { addToCart, items,clearCart } = useCart();
+    const { addToCart, items, clearCart } = useCart();
     const [form, setForm] = React.useState<any>({});
     const [errors, setErrors] = React.useState<any>({});
 
@@ -38,11 +38,11 @@ const DeliveryPage = ({ empresaInfo }: IDeliveryPage) => {
             const message = items.map(item =>
                 `🛍️ ${item.nombre} x${item.cantidad} - $${item.precio * item.cantidad}`
             ).join('\n');
-            
+
             let infoLinesFormated = Object.keys(form).map((key) =>
                 `🔹 ${key}: ${form[key]}`
             ).join('\n');
-            
+
             fullMessage = `¡Hola! 😊 Me gustaría realizar el siguiente pedido:\n\n${message}\n\n📄 *Datos del pedido:*\n${infoLinesFormated}\n\n¡Muchas gracias! 🙏 Quedo atento/a a su confirmación.`;
         }
 
@@ -74,11 +74,12 @@ const DeliveryPage = ({ empresaInfo }: IDeliveryPage) => {
     };
 
     const products = empresaInfo?.products
+    console.log(empresaInfo?.data);
 
     return (
-        <div className="w-full bg-[#030508] flex flex-col flex-1">
+        <div className="w-full flex flex-col flex-1">
 
-            <div className="relative mt-[100px] bg-[#030508] w-full z-[1px] ">
+            <div className="relative mt-[100px] w-full z-[1px] ">
                 <img
                     className="adaptativeImage opacity-[0.8] object-cover w-full"
                     src="https://st3.depositphotos.com/4590583/35791/i/450/depositphotos_357913324-stock-photo-background-food-dishes-salads-snacks.jpg"
@@ -89,14 +90,16 @@ const DeliveryPage = ({ empresaInfo }: IDeliveryPage) => {
                     <p className='md:text-[50px] text-[16]'><span className='text-yellow-300'>SABORES</span> QUE UNEN</p>
                     <p className='font-extralight md:max-w-[600px] text-[16] '>Deléitate con una selección diversa de platos que representan lo mejor de cada restaurante. Comidas frescas, sabrosas y listas para disfrutar en cualquier momento.</p>
                     <div className='mt-4 flex flex-row items-center gap-[20px]'>
-                        <button className='border-[2px] hover:scale-125 transition rounded-full py-2 px-8 border-yellow-300 text-white'>Menu</button>
+                        <a href="#myMenuDelivery">
+                            <button className='border-[2px] hover:scale-125 transition rounded-full py-2 px-8 border-yellow-300 text-white'>Menu</button>
+                        </a>
+
                         <button className='border-[2px] hover:scale-125 transition rounded-full py-2 px-8 border-yellow-300 text-white'>Ordenar</button>
                     </div>
                 </div>
             </div>
 
-            <div className="w-[100%] bg-transparent z-[100px] mx-auto my-[300px] flex flex-row items-center justify-center">
-
+            <div className="w-[100%] bg-transparent z-[100px] mx-auto mb-[300px] flex flex-row items-center justify-center">
                 <div className='relative w-full flex flex-col items-center'>
                     <ProductsSwiper categorys={products} onAddToCart={handleAddToCart} />
                     <Cart onCheckout={toggleModalComplete} />

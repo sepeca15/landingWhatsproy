@@ -9,38 +9,48 @@ interface UncustomModalProps {
   onClose: () => void;
   children: React.ReactNode;
   title?: string;
-  handleComplete?: ()=> void;
+  handleComplete?: () => void;
+  buttonSend?: string;
+  width?: string;
 }
 
-const customStyles: Modal.Styles = {
+const customStyles = (width?: string): Modal.Styles => ({
   content: {
     top: '50%',
     left: '50%',
     right: 'auto',
     bottom: 'auto',
-    marginRight: '-50%',
     transform: 'translate(-50%, -50%)',
     padding: '30px',
     borderRadius: '12px',
-    border: 0,
+    border: 'none',
     backgroundColor: '#1e293b',
-    maxWidth: '500px',
+    maxWidth: width ?? '450px',
     width: '90%',
+    position: 'relative',
   },
   overlay: {
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
     zIndex: 1000,
   },
-};
+});
 
 Modal.setAppElement('body');
 
-const UncustomModal: React.FC<UncustomModalProps> = ({ isOpen, onClose, children, title, handleComplete }) => {
+const UncustomModal: React.FC<UncustomModalProps> = ({
+  isOpen,
+  onClose,
+  width,
+  buttonSend,
+  children,
+  title,
+  handleComplete,
+}) => {
   const subtitleRef = useRef<HTMLHeadingElement | null>(null);
 
   useEffect(() => {
     if (isOpen && subtitleRef.current) {
-      subtitleRef.current.style.color = '#1e293b';
+      subtitleRef.current.style.color = '#1e293b'; 
     }
   }, [isOpen]);
 
@@ -48,21 +58,32 @@ const UncustomModal: React.FC<UncustomModalProps> = ({ isOpen, onClose, children
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
-      style={customStyles}
-      contentLabel={title || "Modal"}
+      style={customStyles(width)}
+      contentLabel={title || 'Modal'}
     >
-      {title && <h2 className='text-white mb-6 text-2xl text-center' ref={subtitleRef}>{title}</h2>}
+      {title && (
+        <h2 ref={subtitleRef} className="text-white mb-6 text-2xl text-center font-bold">
+          {title}
+        </h2>
+      )}
+
       <div className="modal-body">{children}</div>
-      <button className='absolute top-0 right-4' onClick={onClose} style={{ marginTop: '20px' }}>
-        <IoCloseOutline color='white' size={30} />
-      </button>
+
       <button
-        onClick={handleComplete}
-        className="w-full mt-[24px] text-xl bg-[#2c466d] text-white py-3 rounded-lg shadow-md hover:bg-[#203350] transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 focus:ring-offset-[#1e293b]"
+        className="absolute top-4 right-4 p-1 hover:scale-110 transition"
+        onClick={onClose}
       >
-        Completar
+        <IoCloseOutline color="white" size={28} />
       </button>
-      <button></button>
+
+      {handleComplete && (
+        <button
+          onClick={handleComplete}
+          className="w-full mt-10 text-lg bg-[#2c466d] text-white py-3 rounded-lg shadow-md hover:bg-[#203350] transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[#1e293b]"
+        >
+          {buttonSend ?? 'Completar'}
+        </button>
+      )}
     </Modal>
   );
 };

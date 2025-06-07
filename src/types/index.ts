@@ -42,6 +42,7 @@ export interface EmpresaResponse {
   data: EmpresaData;
   products: Category[];
   infoLines: IInfoLine[]
+  horario: any[]
 }
 
 export interface Category {

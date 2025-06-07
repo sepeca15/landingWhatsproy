@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+.uppercase-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-weight: 800;
+  font-style: normal;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+
 body {
   color: var(--foreground);
   background: #030508;
@@ -9,7 +20,7 @@ body {
 }
 
 .mustard-blob {
-  background-color: #ffc107;
+  background-color: #ebb30b;
   padding: 0.5rem 1.5rem;
   color: black;
   font-weight: bold;
@@ -90,6 +101,14 @@ input[type="number"]::-webkit-outer-spin-button {
   box-shadow: 0 0 0 2px #2563eb;
   border-radius: 4px;
 }
+
+.react-calendar.night-blue button[disabled] {
+  opacity: 0.3;
+  color: #64748b; /* slate-500 */
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 
 input[type="time"] {
   background-color: #1e293b;
